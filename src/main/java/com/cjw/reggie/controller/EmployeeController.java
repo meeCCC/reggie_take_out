@@ -77,23 +77,22 @@ public class EmployeeController {
 
     /**
      * 添加员工信息
-     * @param request
      * @param employee
      * @return
      */
     @PostMapping
-    public R<String> save(HttpServletRequest request,@RequestBody Employee employee){
+    public R<String> save(@RequestBody Employee employee){
             log.info("新增员工信息：{}"+employee.toString());
 
             employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
 
-            employee.setCreateTime(LocalDateTime.now());
-            employee.setUpdateTime(LocalDateTime.now());
+            //employee.setCreateTime(LocalDateTime.now());
+            //employee.setUpdateTime(LocalDateTime.now());
 
-             Long empId = (Long) request.getSession().getAttribute("employee");
+             //Long empId = (Long) request.getSession().getAttribute("employee");
 
-             employee.setCreateUser(empId);
-             employee.setUpdateUser(empId);
+             //employee.setCreateUser(empId);
+             //employee.setUpdateUser(empId);
 
              employeeService.save(employee);
 
@@ -136,8 +135,8 @@ public class EmployeeController {
         log.info(employee.toString());
 
         Long empId = (Long) request.getSession().getAttribute("employee");
-        employee.setUpdateUser(empId);
-        employee.setUpdateTime(LocalDateTime.now());
+        //employee.setUpdateUser(empId);
+        //employee.setUpdateTime(LocalDateTime.now());
 
         employeeService.updateById(employee);
 
