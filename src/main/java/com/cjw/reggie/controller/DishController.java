@@ -50,6 +50,7 @@ public class DishController {
             //查询pageInfo
         LambdaQueryWrapper<Dish> lqw = new LambdaQueryWrapper<>();
         lqw.like(name != null,Dish::getName,name);
+        lqw.eq(Dish::getIsDeleted,0);
         lqw.orderByDesc(Dish::getUpdateTime);
         dishService.page(pageInfo,lqw);
 
@@ -91,20 +92,16 @@ public class DishController {
 
     }
 
-    @DeleteMapping("/{ids}")
-    public R<String> deleteDishes(@PathVariable Long ids){
+    @DeleteMapping
+    public R<String> deleteDishes( Long ids){
         log.info("id= {}"+ids);
         Dish dish = dishService.getById(ids);
-        dish.setIsDeleted(1);
+        if(dish.getStatus()==1){
+            return R.error("在售菜品无法删除");
+        }
 
-        //通过菜品id查口味
-        LambdaQueryWrapper<DishFlavor> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(DishFlavor::getDishId,ids);
-        List<DishFlavor> flavors = dishFlavorService.list();
-        flavors = flavors.stream().map((flavor)->{
-            flavor.setIsDeleted(1);
-            return flavor;
-        }).collect(Collectors.toList());
+        dish.setIsDeleted(1);
+        dishService.updateById(dish);
 
         return R.success("删除成功");
 
@@ -128,6 +125,17 @@ public class DishController {
 
 
         return R.success("修改完成");
+    }
+
+    @GetMapping("/list")
+    public R<List<Dish>> dishList(Dish dish){
+        LambdaQueryWrapper<Dish> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(dish.getCategoryId()!=null,Dish::getCategoryId,dish.getCategoryId());
+        lqw.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+
+        List<Dish> dishes = dishService.list(lqw);
+
+        return R.success(dishes);
     }
 
 

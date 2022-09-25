@@ -13,7 +13,6 @@ public interface DishService extends IService<Dish> {
     //获取带口味的对象
     public DishDto getWithFlavor(Long id);
 
-
     public void updateWithFlavor(DishDto dishDto);
 
 }
