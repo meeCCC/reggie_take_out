@@ -6,8 +6,11 @@ import com.cjw.reggie.commen.R;
 import com.cjw.reggie.dto.DishDto;
 import com.cjw.reggie.entity.Category;
 import com.cjw.reggie.entity.Dish;
+import com.cjw.reggie.entity.DishFlavor;
 import com.cjw.reggie.service.CategoryService;
+import com.cjw.reggie.service.DishFlavorService;
 import com.cjw.reggie.service.DishService;
+import com.cjw.reggie.service.impl.DishServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,9 @@ public class DishController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private DishFlavorService dishFlavorService;
 
     @PostMapping
     public R<String> save(@RequestBody DishDto dishDto){
@@ -68,7 +74,61 @@ public class DishController {
 
     }
 
+    @GetMapping("/{id}")
+    public R<DishDto> getToModify(@PathVariable Long id){
 
+        DishDto dishDto = dishService.getWithFlavor(id);
+        return R.success(dishDto);
+    }
+
+
+    @PutMapping
+    public R<String> updateDish(@RequestBody DishDto dishDto){
+
+        dishService.updateWithFlavor(dishDto);
+
+        return R.success("修改成功");
+
+    }
+
+    @DeleteMapping("/{ids}")
+    public R<String> deleteDishes(@PathVariable Long ids){
+        log.info("id= {}"+ids);
+        Dish dish = dishService.getById(ids);
+        dish.setIsDeleted(1);
+
+        //通过菜品id查口味
+        LambdaQueryWrapper<DishFlavor> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(DishFlavor::getDishId,ids);
+        List<DishFlavor> flavors = dishFlavorService.list();
+        flavors = flavors.stream().map((flavor)->{
+            flavor.setIsDeleted(1);
+            return flavor;
+        }).collect(Collectors.toList());
+
+        return R.success("删除成功");
+
+    }
+
+    @PostMapping({"/status/0","/status/1"})
+    public R<String> stopSale( Long ids){
+        log.info("id = {}",ids);
+
+        Dish dish = dishService.getById(ids);
+
+        Integer status = dish.getStatus();
+
+        if(status == 1){
+            dish.setStatus(0);
+        }else {
+            dish.setStatus(1);
+        }
+
+        dishService.updateById(dish);
+
+
+        return R.success("修改完成");
+    }
 
 
 }
