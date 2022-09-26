@@ -1,7 +1,7 @@
 package com.cjw.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.cjw.reggie.commen.R;
+import com.cjw.reggie.common.R;
 import com.cjw.reggie.entity.User;
 import com.cjw.reggie.service.UserService;
 import com.cjw.reggie.utils.ValidateCodeUtils;

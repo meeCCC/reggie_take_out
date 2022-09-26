@@ -1,4 +1,4 @@
-package com.cjw.reggie.commen;
+package com.cjw.reggie.common;
 
 
 import lombok.extern.slf4j.Slf4j;

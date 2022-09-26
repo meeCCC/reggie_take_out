@@ -1,7 +1,7 @@
 package com.cjw.reggie.controller;
 
 
-import com.cjw.reggie.commen.R;
+import com.cjw.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;

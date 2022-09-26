@@ -2,8 +2,8 @@ package com.cjw.reggie.filter;
 
 
 import com.alibaba.fastjson.JSON;
-import com.cjw.reggie.commen.BaseContext;
-import com.cjw.reggie.commen.R;
+import com.cjw.reggie.common.BaseContext;
+import com.cjw.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
 

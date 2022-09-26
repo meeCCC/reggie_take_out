@@ -3,7 +3,7 @@ package com.cjw.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.cjw.reggie.commen.R;
+import com.cjw.reggie.common.R;
 import com.cjw.reggie.entity.Category;
 import com.cjw.reggie.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
@@ -66,11 +66,17 @@ public class CategoryController {
     @GetMapping("/list")
     public R<List<Category>> list(Category category){
 
+
         LambdaQueryWrapper<Category> lqw = new LambdaQueryWrapper<>();
 
         lqw.eq(category != null,Category::getType,category.getType());
         lqw.orderByDesc(Category::getSort).orderByDesc(Category::getUpdateTime);
         List list = categoryService.list(lqw);
+
+        if(list.size() == 0){
+            return R.success(categoryService.list());
+
+        }
         return R.success(list);
 
     }

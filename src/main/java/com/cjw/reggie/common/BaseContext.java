@@ -1,4 +1,4 @@
-package com.cjw.reggie.commen;
+package com.cjw.reggie.common;
 
 public class BaseContext {
     public static ThreadLocal<Long> threadLocal = new ThreadLocal<>();

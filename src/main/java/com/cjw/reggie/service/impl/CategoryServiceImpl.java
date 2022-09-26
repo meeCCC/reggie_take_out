@@ -2,7 +2,7 @@ package com.cjw.reggie.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.cjw.reggie.commen.CustomException;
+import com.cjw.reggie.common.CustomException;
 import com.cjw.reggie.entity.Category;
 import com.cjw.reggie.entity.Dish;
 import com.cjw.reggie.entity.Setmeal;

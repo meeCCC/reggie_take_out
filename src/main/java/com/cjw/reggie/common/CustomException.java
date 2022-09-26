@@ -1,4 +1,4 @@
-package com.cjw.reggie.commen;
+package com.cjw.reggie.common;
 
 public class CustomException extends RuntimeException{
     public CustomException(String message){
