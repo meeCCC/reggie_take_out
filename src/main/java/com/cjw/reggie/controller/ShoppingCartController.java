@@ -110,6 +110,8 @@ public class ShoppingCartController {
 
     @DeleteMapping("/clean")
     public R<String> cleanCart(){
+
+
         Long userId = BaseContext.getCurrentId();
 
         LambdaQueryWrapper<ShoppingCart> lqw = new LambdaQueryWrapper<>();

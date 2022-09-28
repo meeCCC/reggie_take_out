@@ -65,28 +65,58 @@ public class SetmealController {
     }
 
     @DeleteMapping
-    public R<String> deleteSetmeal(Long ids){
+    public R<String> deleteSetmeal(String ids){
 
-        Setmeal setmeal = setmealService.getById(ids);
-        if(setmeal.getStatus()==1){
-            return R.error("在售商品无法删除!");
+        String[] idses = ids.split(",");
+
+        for (String id : idses) {
+            Setmeal setmeal = setmealService.getById(id);
+            if(setmeal.getStatus()==1){
+                return R.error("在售商品无法删除!");
+            }
+            setmeal.setIsDeleted(1);
+            setmealService.updateById(setmeal);
         }
-        setmeal.setIsDeleted(1);
-        setmealService.updateById(setmeal);
 
         return  R.success("删除成功");
 
     }
 
-    @PostMapping({"/status/0","/status/1"})
-    public R<String> statusModify(Long ids){
-        Setmeal setmeal = setmealService.getById(ids);
-        if(setmeal.getStatus()==1){
+    /**
+     * 停售，批量停售
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/0")
+    public R<String> stopSale(String ids){
+
+        String[] idses = ids.split(",");
+
+        for (String id : idses) {
+            Setmeal setmeal = setmealService.getById(id);
             setmeal.setStatus(0);
-        }else {
-            setmeal.setStatus(1);
+            setmealService.updateById(setmeal);
         }
-        setmealService.updateById(setmeal);
+
+        return R.success("修改成功");
+
+    }
+
+    /**
+     * 起售，批量起售
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/1")
+    public R<String> beginSale(String ids){
+
+        String[] idses = ids.split(",");
+
+        for (String id : idses) {
+            Setmeal setmeal = setmealService.getById(id);
+            setmeal.setStatus(1);
+            setmealService.updateById(setmeal);
+        }
 
         return R.success("修改成功");
 

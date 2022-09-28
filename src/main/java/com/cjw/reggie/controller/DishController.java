@@ -13,6 +13,7 @@ import com.cjw.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -90,37 +91,72 @@ public class DishController {
 
     }
 
+
     @DeleteMapping
-    public R<String> deleteDishes( Long ids){
+    public R<String> deleteDish(String ids){
         log.info("id= {}"+ids);
-        Dish dish = dishService.getById(ids);
-        if(dish.getStatus()==1){
-            return R.error("在售菜品无法删除");
+
+        //多个菜品的id
+        String[] idses = ids.split(",");
+        for (String id: idses) {
+
+            Dish dish = dishService.getById(id);
+            if(dish.getStatus()==1){
+                return R.error("在售菜品无法删除");
+            }
+
+            dish.setIsDeleted(1);
+            dishService.updateById(dish);
+
         }
 
-        dish.setIsDeleted(1);
-        dishService.updateById(dish);
+
 
         return R.success("删除成功");
 
     }
 
-    @PostMapping({"/status/0","/status/1"})
-    public R<String> stopSale( Long ids){
+
+    /**
+     * 停售，批量停售
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/0")
+    public R<String> stopSale( String ids){
         log.info("id = {}",ids);
 
-        Dish dish = dishService.getById(ids);
+        String[] idses = ids.split(",");
 
-        Integer status = dish.getStatus();
+        for (String id : idses) {
+            Dish dish = dishService.getById(id);
 
-        if(status == 1){
             dish.setStatus(0);
-        }else {
-            dish.setStatus(1);
+
+            dishService.updateById(dish);
         }
 
-        dishService.updateById(dish);
+        return R.success("修改完成");
+    }
 
+    /**
+     * 起售，批量起售
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/1")
+    public R<String> beginSale( String ids){
+        log.info("id = {}",ids);
+
+        String[] idses = ids.split(",");
+
+        for (String id : idses) {
+            Dish dish = dishService.getById(id);
+
+            dish.setStatus(1);
+
+            dishService.updateById(dish);
+        }
 
         return R.success("修改完成");
     }
