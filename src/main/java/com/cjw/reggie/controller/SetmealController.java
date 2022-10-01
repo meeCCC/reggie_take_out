@@ -9,10 +9,12 @@ import com.cjw.reggie.service.SetmealDishService;
 import com.cjw.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @Slf4j
@@ -24,6 +26,9 @@ public class SetmealController {
 
     @Autowired
     private SetmealDishService setmealDishService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @PostMapping
     public R<String> save(@RequestBody SetmealDto setmealDto){
@@ -124,11 +129,24 @@ public class SetmealController {
 
     @GetMapping("/list")
     public R<List<Setmeal>> getSetmealList(Long categoryId,int status){
+
+        List<Setmeal> setmealList = null;
+
+        String setmealId = "setmeal_" + categoryId + "_1";
+
+        setmealList = (List<Setmeal>) redisTemplate.opsForValue().get(setmealId);
+
+        if (setmealList!=null){
+            return R.success(setmealList);
+        }
+
         LambdaQueryWrapper<Setmeal> lqw =new LambdaQueryWrapper<>();
         lqw.eq(Setmeal::getCategoryId,categoryId);
         lqw.eq(Setmeal::getStatus,status);
 
-        List<Setmeal> setmealList = setmealService.list(lqw);
+         setmealList = setmealService.list(lqw);
+
+         redisTemplate.opsForValue().set(setmealId,setmealList,60, TimeUnit.MINUTES);
 
         return R.success(setmealList);
 
