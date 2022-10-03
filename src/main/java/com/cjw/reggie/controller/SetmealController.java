@@ -5,16 +5,22 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cjw.reggie.common.R;
 import com.cjw.reggie.dto.SetmealDto;
 import com.cjw.reggie.entity.Setmeal;
+import com.cjw.reggie.service.CategoryService;
 import com.cjw.reggie.service.SetmealDishService;
 import com.cjw.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -30,6 +36,10 @@ public class SetmealController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private CategoryService categoryService;
+
+    @CacheEvict(value = "setmealCache",allEntries = true)
     @PostMapping
     public R<String> save(@RequestBody SetmealDto setmealDto){
         setmealService.saveWithDish(setmealDto);
@@ -39,17 +49,32 @@ public class SetmealController {
 
     @GetMapping("/page")
     public R<Page> setmealPage(int page, int pageSize,String name){
-        Page<Setmeal> pageInfo = new Page<>(page,pageSize);
+        Page<SetmealDto> pageInfo = new Page<>(page,pageSize);
+
 
         LambdaQueryWrapper<Setmeal> lqw = new LambdaQueryWrapper<>();
         lqw.like(name != null,Setmeal::getName,name);
         lqw.orderByDesc(Setmeal::getUpdateTime);
-        lqw.eq(Setmeal::getIsDeleted,0);
         //是否逻辑删除
         lqw.eq(Setmeal::getIsDeleted,0);
 
         List<Setmeal> list = setmealService.list(lqw);
-        pageInfo.setRecords(list);
+
+        List<SetmealDto> setmealDtoList = list.stream().map((item)->{
+            SetmealDto setmealDto = new SetmealDto();
+
+            BeanUtils.copyProperties(item,setmealDto);
+
+            String name1 = categoryService.getById(item.getCategoryId()).getName();
+
+            setmealDto.setCategoryName(name1);
+
+            return setmealDto;
+
+        }).collect(Collectors.toList());
+
+
+        pageInfo.setRecords(setmealDtoList);
         return R.success(pageInfo);
 
 
@@ -62,6 +87,7 @@ public class SetmealController {
     }
 
     @PutMapping
+    @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> modify(@RequestBody SetmealDto setmealDto){
 
         setmealService.updateWithDish(setmealDto);
@@ -92,6 +118,7 @@ public class SetmealController {
      * @param ids
      * @return
      */
+    @CacheEvict(value = "setmealCache",allEntries = true)
     @PostMapping("/status/0")
     public R<String> stopSale(String ids){
 
@@ -113,6 +140,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping("/status/1")
+    @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> beginSale(String ids){
 
         String[] idses = ids.split(",");
@@ -127,14 +155,22 @@ public class SetmealController {
 
     }
 
+
+    /**
+     * 获取套餐列表
+     * @param categoryId
+     * @param status
+     * @return
+     */
+    @Cacheable(value = "setmealCache",key = "'setmeal_'+#categoryId+#status")
     @GetMapping("/list")
     public R<List<Setmeal>> getSetmealList(Long categoryId,int status){
 
         List<Setmeal> setmealList = null;
 
-        String setmealId = "setmeal_" + categoryId + "_1";
+        /*String setmealId = "setmeal_" + categoryId + "_1";
 
-        setmealList = (List<Setmeal>) redisTemplate.opsForValue().get(setmealId);
+        setmealList = (List<Setmeal>) redisTemplate.opsForValue().get(setmealId);*/
 
         if (setmealList!=null){
             return R.success(setmealList);
@@ -146,7 +182,8 @@ public class SetmealController {
 
          setmealList = setmealService.list(lqw);
 
-         redisTemplate.opsForValue().set(setmealId,setmealList,60, TimeUnit.MINUTES);
+
+         //redisTemplate.opsForValue().set(setmealId,setmealList,60, TimeUnit.MINUTES);
 
         return R.success(setmealList);
 
